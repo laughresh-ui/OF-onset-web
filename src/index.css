@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+:root {
+  --bg-pure: #09090b;
+  --panel-bg: rgba(18, 18, 20, 0.75);
+  --panel-bg-hover: rgba(28, 28, 32, 0.85);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --accent-ok: #4CAF50;
+  --accent-pending: #FF9800;
+  --text-primary: #e4e4e7;
+  --text-secondary: #a1a1aa;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-pure);
+  color: var(--text-primary);
+  overflow: hidden;
+  cursor: default;
+}
+
+.glass {
+  background: var(--panel-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Infinite Canvas Dot Background */
+.canvas-dot-bg {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Node Handle Glow */
+.handle-glow {
+  box-shadow: 0 0 8px var(--accent-ok);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-subtle); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* Custom Animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.05); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 4s infinite ease-in-out;
+}
+
+/* Sliders */
+input[type=range] {
+  -webkit-appearance: none;
+  background: transparent;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 1px;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+  margin-top: -4px;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.handle-glow {
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
+}
