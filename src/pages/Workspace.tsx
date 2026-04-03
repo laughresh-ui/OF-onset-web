@@ -15,6 +15,7 @@ import {
   Plus,
   Scale,
   X,
+  ChevronDown,
 } from 'lucide-react';
 
 // --- 文字标 ---
@@ -39,7 +40,29 @@ const MILAREPA_ASSETS = {
     { id: 's2', name: '九层碉楼', url: 'https://picsum.photos/seed/tower/400/225' },
   ],
   script: {
-    episodes: [{ scenes: [{ id: 'sh12s02', shot: 'Shot 02 / 拙火定', text: '“青年密勒日巴在极寒中端坐，拙火从脐下升起，体内的拙火逐渐燃起，照亮了斑驳的岩壁...”' }] }],
+    episodes: [
+      {
+        id: 'ep1',
+        title: '第一幕 · 苦修',
+        scenes: [
+          {
+            id: 'sh12s01',
+            shot: 'Shot 01 / 入山',
+            text: '“山道蜿蜒，青年背负重担，风雪扑面，远处岩洞隐现于雾霭之中...”',
+          },
+          {
+            id: 'sh12s02',
+            shot: 'Shot 02 / 拙火定',
+            text: '“青年密勒日巴在极寒中端坐，拙火从脐下升起，体内的拙火逐渐燃起，照亮了斑驳的岩壁...”',
+          },
+          {
+            id: 'sh12s03',
+            shot: 'Shot 03 / 洞外晨光',
+            text: '“晨曦一线切入洞窟，尘粒在光柱中浮动，衣袍上的霜痕缓缓化作水汽...”',
+          },
+        ],
+      },
+    ],
   },
 };
 
@@ -389,6 +412,10 @@ export default function WorkspaceScene() {
   const [hoverLeft, setHoverLeft] = useState(false);
   const [hoverRight, setHoverRight] = useState(false);
   const [commandCenterOpen, setCommandCenterOpen] = useState(false);
+  const [scriptDropdownOpen, setScriptDropdownOpen] = useState(false);
+  const [scriptSceneIndex, setScriptSceneIndex] = useState(1);
+  const [bottomOpen, setBottomOpen] = useState(false);
+  const scriptMenuRef = useRef<HTMLDivElement>(null);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
@@ -407,6 +434,20 @@ export default function WorkspaceScene() {
   useEffect(() => {
     draftConnectionRef.current = draftConnection;
   }, [draftConnection]);
+
+  const scriptScenes = MILAREPA_ASSETS.script.episodes[0].scenes;
+  const activeScriptScene = scriptScenes[scriptSceneIndex] ?? scriptScenes[0];
+
+  useEffect(() => {
+    if (!scriptDropdownOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (scriptMenuRef.current && !scriptMenuRef.current.contains(e.target as Node)) {
+        setScriptDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [scriptDropdownOpen]);
 
   useLayoutEffect(() => {
     if (selectedNodeId && nodeRefsRef.current[selectedNodeId]) {
@@ -713,28 +754,117 @@ export default function WorkspaceScene() {
         </div>
       )}
 
-      <header className="fixed top-0 left-0 w-full h-14 z-[4000] border-b border-white/[0.05] bg-[#050505]/80 backdrop-blur-xl flex items-center justify-between px-6">
-        <div className="flex items-center gap-6">
+      <header className="fixed top-0 left-0 w-full h-14 z-[4000] border-b border-white/[0.05] bg-[#050505]/80 backdrop-blur-xl flex items-center px-6 gap-4">
+        <div className="flex-1 flex justify-start min-w-0">
           <button
             type="button"
             onClick={() => navigate('/dashboard')}
-            className="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 bg-transparent border-none shrink-0"
+            className="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 bg-transparent border-none shrink-0 cursor-pointer"
           >
-            <LayoutDashboard size={16} />{' '}
+            <LayoutDashboard size={16} />
             <span className="text-[11px] font-bold uppercase tracking-widest">大厅</span>
           </button>
-          <div className="w-[1px] h-4 bg-white/10" />
+        </div>
+        <div className="flex-1 flex justify-center min-w-0">
           <TextBrand className="shrink-0" />
-          <div className="w-[1px] h-4 bg-white/10" />
-          <div className="flex items-center gap-3 text-[11px] text-zinc-400">
-            <BookOpen size={14} className="text-[#4CAF50]" />{' '}
-            <span className="font-bold">《密勒日巴传记》</span>
-            <span className="px-2 py-0.5 bg-white/10 rounded uppercase font-mono tracking-widest">
-              {MILAREPA_ASSETS.script.episodes[0].scenes[0].shot}
-            </span>
+        </div>
+        <div className="flex-1 flex justify-end min-w-0">
+          <div className="relative" ref={scriptMenuRef}>
+            <button
+              type="button"
+              onClick={() => setScriptDropdownOpen((o) => !o)}
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] px-3 py-2 transition-colors max-w-full"
+            >
+              <BookOpen size={14} className="text-[#4CAF50] shrink-0" />
+              <div className="flex flex-col items-start min-w-0 text-left">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 leading-none">
+                  《密勒日巴传记》
+                </span>
+                <span className="text-[11px] font-bold text-zinc-200 truncate max-w-[200px] mt-0.5">
+                  {activeScriptScene.shot}
+                </span>
+              </div>
+              <ChevronDown
+                size={16}
+                className={`text-zinc-400 shrink-0 transition-transform ${scriptDropdownOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+            <AnimatePresence>
+              {scriptDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-[calc(100%+8px)] w-[min(92vw,440px)] glass rounded-xl border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.75)] backdrop-blur-xl overflow-hidden z-[10]"
+                >
+                  <div className="px-4 py-3 border-b border-white/10 bg-black/30">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">场次</p>
+                    <p className="text-[12px] font-bold text-white mt-1">{MILAREPA_ASSETS.script.episodes[0].title}</p>
+                  </div>
+                  <div className="max-h-[200px] overflow-y-auto scrollbar-hide border-b border-white/5">
+                    {scriptScenes.map((sc, idx) => (
+                      <button
+                        key={sc.id}
+                        type="button"
+                        onClick={() => {
+                          setScriptSceneIndex(idx);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-[11px] transition-colors border-b border-white/[0.04] last:border-b-0 ${
+                          idx === scriptSceneIndex
+                            ? 'bg-[#4CAF50]/15 text-[#4CAF50]'
+                            : 'text-zinc-300 hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <span className="font-mono tracking-wider uppercase block">{sc.shot}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="p-4 bg-black/40">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-2">剧本文案预览</p>
+                    <p className="text-[13px] text-zinc-200 leading-relaxed font-serif line-clamp-6">{activeScriptScene.text}</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </header>
+
+      <div
+        className={`fixed bottom-0 left-[80px] right-[80px] z-[4000] glass border-t border-white/10 rounded-t-xl overflow-hidden shadow-[0_-20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 ease-out flex flex-col ${
+          bottomOpen ? 'h-[200px]' : 'h-10'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => setBottomOpen((o) => !o)}
+          className="h-10 w-full flex items-center justify-center shrink-0 cursor-pointer hover:bg-white/[0.04] transition-colors border-none bg-transparent"
+          aria-expanded={bottomOpen}
+          aria-label={bottomOpen ? '收起输出序列' : '展开输出序列'}
+        >
+          <div className="w-10 h-1 rounded-full bg-white/25 hover:bg-white/40 transition-colors" />
+        </button>
+        {bottomOpen && (
+          <div className="flex-1 min-h-0 px-4 pb-3 flex items-stretch gap-2 overflow-x-auto scrollbar-hide">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <div
+                key={n}
+                className="shrink-0 flex-1 min-w-[100px] max-w-[140px] rounded-lg border border-dashed border-white/15 bg-zinc-950/80 flex flex-col items-center justify-center gap-1 relative overflow-hidden"
+              >
+                <div className="absolute inset-x-0 top-0 h-2 flex justify-evenly items-center opacity-40">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <span key={i} className="w-1 h-1 rounded-full bg-zinc-500" />
+                  ))}
+                </div>
+                <Film size={20} className="text-zinc-600 mt-2" />
+                <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-widest">OK</span>
+                <span className="text-[18px] font-black text-zinc-600 tabular-nums">{n}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div
         className={`fixed top-14 bottom-0 left-0 glass z-[3000] border-r border-white/5 transition-all duration-300 ease-out flex flex-col ${
